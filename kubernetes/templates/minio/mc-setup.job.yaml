@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: myminio-mc-setup
+  namespace: ns-datalake #FIXME: namespace
+spec:
+  template:
+    spec:
+      containers:
+      - name: myminio-mc
+        image: minio/mc
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          sleep 5;
+          /usr/bin/mc config host add fakes3 http://myminio:9000 myminio myminio123 || true;
+          /usr/bin/mc mb -p fakes3/datalake || true;
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          value: "myminiomyminio"
+        - name: AWS_SECRET_ACCESS_KEY
+          value: "myminiomyminio123"
+        - name: AWS_REGION
+          value: "us-east-1"
+        - name: AWS_DEFAULT_REGION
+          value: "us-east-1"
+        - name: S3_ENDPOINT
+          value: "http://myminio:9000"
+        - name: S3_PATH_STYLE_ACCESS
+          value: "true"
+      restartPolicy: OnFailure

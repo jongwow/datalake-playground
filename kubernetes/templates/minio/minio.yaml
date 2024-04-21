@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myminio
+  namespace: ns-datalake #FIXME: namespace
+spec:
+  selector:
+    matchLabels:
+      app: myminio
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: myminio
+    spec:
+      containers:
+      - name: myminio
+        image: minio/minio
+        args: ["server", "/data", "--console-address", ":9001"]
+        ports:
+        - name: browser
+          containerPort: 9000
+        - name: api
+          containerPort: 9001
+        resources:
+          limits:
+            cpu: "1000m"
+            memory: "1G"
+          requests:
+            cpu: "100m"
+            memory: "100Mi"
+        env:
+        - name: MINIO_ROOT_USER
+          value: "myminio"
+        - name: MINIO_ROOT_PASSWORD
+          value: "myminio123"
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: minio-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: myminio
+  namespace: ns-datalake #FIXME: namespace
+spec:
+  selector:
+    app: myminio
+  ports:
+  - protocol: TCP
+    name: tcp-browser
+    port: 9000
+    targetPort: browser
+  - protocol: TCP
+    port: 9001
+    targetPort: api
+    name: tcp-api
+  type: ClusterIP

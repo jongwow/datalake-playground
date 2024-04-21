@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metastore-cfg
+  namespace: ns-datalake
+data:
+  hive-site.xml: |
+    <configuration>
+        <!-- hive-site default settings -->
+        <property>
+            <name>hive.server2.enable.doAs</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>hive.tez.exec.inplace.progress</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>hive.exec.scratchdir</name>
+            <value>/opt/hive/scratch_dir</value>
+        </property>
+        <property>
+            <name>hive.user.install.directory</name>
+            <value>/opt/hive/install_dir</value>
+        </property>
+        <property>
+            <name>tez.runtime.optimize.local.fetch</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>hive.exec.submit.local.task.via.child</name>
+            <value>false</value>
+        </property>
+        <property>
+            <name>mapreduce.framework.name</name>
+            <value>local</value>
+        </property>
+        <property>
+            <name>tez.local.mode</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>hive.execution.engine</name>
+            <value>tez</value>
+        </property>
+        <property>
+            <name>hive.metastore.warehouse.dir</name>
+            <value>/opt/hive/data/warehouse</value>
+        </property>
+        <property>
+            <name>metastore.metastore.event.db.notification.api.auth</name>
+            <value>false</value>
+        </property>
+
+        <!-- Metastore connection settings -->
+        <property>
+            <name>javax.jdo.option.ConnectionURL</name>
+            <value>jdbc:postgresql://postgresql:5432/metastore</value>
+            <description>PostgreSQL connection string for the metastore database.</description>
+        </property>
+        <property>
+            <name>javax.jdo.option.ConnectionDriverName</name>
+            <value>org.postgresql.Driver</value>
+            <description>Driver class for PostgreSQL.</description>
+        </property>
+        <property>
+            <name>javax.jdo.option.ConnectionUserName</name>
+            <value>postgres</value>
+            <description>Username for connecting to the metastore database.</description>
+        </property>
+        <property>
+            <name>javax.jdo.option.ConnectionPassword</name>
+            <value>psqlpasswrod</value>
+            <description>Password for connecting to the metastore database.</description>
+        </property>
+
+        <!-- Hive Metastore configuration -->
+        <property>
+            <name>datanucleus.autoCreateSchema</name>
+            <value>false</value>
+            <description>Automatically create the necessary schema in the metastore. Set to true if starting for the first time.</description>
+        </property>
+        <property>
+            <name>hive.metastore.schema.verification</name>
+            <value>true</value>
+            <description>Enable metastore schema verification.</description>
+        </property>
+
+        <!-- S3 storage configurations -->
+        <property>
+            <name>fs.s3a.path.style.access</name>
+            <value>true</value>
+        </property>
+        <property>
+            <name>fs.s3a.access.key</name>
+            <value>myminio</value>
+        </property>
+        <property>
+            <name>fs.s3a.secret.key</name>
+            <value>myminio123</value>
+        </property>
+        <property>
+            <name>fs.s3a.impl</name>
+            <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+        </property>
+        <property>
+            <name>fs.s3a.endpoint</name>
+            <value>myminio:9000</value>
+        </property>
+        <property>
+          <name>fs.s3a.awsAccessKeyId</name>
+          <value>myminio</value>
+        </property>
+        <property>
+          <name>fs.s3a.awsSecretAccessKey</name>
+          <value>myminio123</value>
+        </property>
+        <property>
+          <name>fs.s3a.connection.ssl.enabled</name>
+          <value>false</value>
+        </property>
+        <property>
+            <name>hive.metastore.warehouse.dir</name>
+            <value>s3a://datalake/raw/</value>
+            <description>The location on S3 where the Hive data warehouse resides.</description>
+        </property>
+        <property>
+            <name>fs.s3a.fast.upload</name>
+            <value>true</value>
+        </property>
+    </configuration>

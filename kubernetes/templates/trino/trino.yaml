@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: trino
+  namespace: ns-datalake #FIXME: namespace
+spec:
+  selector:
+    app: trino
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trino
+  namespace: ns-datalake #FIXME: namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trino
+  template:
+    metadata:
+      labels:
+        app: trino
+    spec:
+      containers:
+      - name: trino
+        image: trinodb/trino:444
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/trino/catalog/iceberg.properties
+          subPath: iceberg.properties
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+      volumes:
+      - name: config-volume
+        configMap:
+          name: trino-config

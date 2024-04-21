@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: trino-config
+  namespace: ns-datalake #FIXME: namespace
+data:
+  iceberg.properties: |
+    connector.name=iceberg
+    iceberg.catalog.type=hive_metastore
+    hive.metastore.uri=thrift://hive-metastore:9083
+    hive.s3.endpoint=http://myminio:9000
+    hive.s3.region=us-east-1
+    hive.s3.path-style-access=true
+    hive.s3.aws-access-key=myminio
+    hive.s3.aws-secret-key=myminio123
+    hive.s3.streaming.part-size=5MB
+    hive.s3.ssl.enabled=false

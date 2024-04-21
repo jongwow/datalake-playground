@@ -1,0 +1,159 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hive-metastore
+  namespace: ns-datalake #FIXME: namespace
+spec:
+  ports:
+  - port: 9083
+    targetPort: 9083
+    name: thrift
+  selector:
+    app: hive-metastore
+  type: ClusterIP
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hive-metastore
+  namespace: ns-datalake #FIXME: namespace
+spec:
+  selector:
+    matchLabels:
+      app: hive-metastore
+  template:
+    metadata:
+      labels:
+        app: hive-metastore
+    spec:
+      securityContext:
+        runAsUser: 0 # root user id #FIXME: 
+      initContainers:
+      - name: download-jars
+        image: curlimages/curl:7.70.0
+        command: ["sh", "-c", "curl -o /jdbc/postgresql-42.5.1.jar https://jdbc.postgresql.org/download/postgresql-42.5.1.jar"]
+        volumeMounts:
+        - name: postgres-jar
+          mountPath: /jdbc
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+      containers:
+      - name: hive-metastore
+        image: apache/hive:4.0.0
+        command: ["/bin/sh", "-c", "cp /opt/hadoop/share/hadoop/tools/lib/aws-java-sdk-bundle-1.12.367.jar /opt/hive/lib && cp /opt/hadoop/share/hadoop/tools/lib/hadoop-aws-3.3.6.jar /opt/hive/lib && /entrypoint.sh"]
+        env:
+        - name: HADOOP_ROOT_LOGGER
+          value: DEBUG,console
+        - name: SERVICE_NAME
+          value: "metastore"
+        - name: DB_DRIVER
+          value: "postgres"
+        - name: SERVICE_OPTS
+          value: "-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgresql:5432/metastore -Djavax.jdo.option.ConnectionUserName=postgres -Djavax.jdo.option.ConnectionPassword=psqlpasswrod"
+        volumeMounts:
+        - name: warehouse
+          mountPath: /opt/hive/data/warehouse
+        - name: postgres-jar
+          mountPath: /opt/hive/lib/postgres.jar
+          subPath: postgresql-42.5.1.jar
+        - name: metastore-cfg-vol
+          mountPath: /opt/hive/conf/hive-site.xml
+          subPath: hive-site.xml
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        ports:
+        - containerPort: 9083
+      volumes:
+      - name: warehouse
+        persistentVolumeClaim:
+          claimName: hive-warehouse-pvc
+      - name: postgres-jar
+        emptyDir: {}
+      - name: metastore-cfg-vol
+        configMap:
+          name: metastore-cfg
+
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: hive-hiveserver2
+#   namespace: ns-datalake #FIXME: namespace
+# spec:
+#   ports:
+#   - port: 10000
+#     targetPort: 10000
+#     name: port-0
+#   - port: 10002
+#     targetPort: 10002
+#     name: port-2
+#   selector:
+#     app: hive-hiveserver2
+#   type: ClusterIP
+
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: hive-hiveserver2
+#   namespace: ns-datalake #FIXME: namespace
+# spec:
+#   selector:
+#     matchLabels:
+#       app: hive-hiveserver2
+#   template:
+#     metadata:
+#       labels:
+#         app: hive-hiveserver2
+#     spec:
+#       containers:
+#       - name: hive-hiveserver2
+#         image: apache/hive:4.0.0
+#         env:
+#         - name: HIVE_SERVER2_THRIFT_PORT
+#           value: "10000"
+#         - name: HADOOP_ROOT_LOGGER
+#           value: DEBUG,console
+#         - name: SERVICE_NAME
+#           value: "hiveserver2"
+#         - name: SERVICE_OPTS
+#           value: "-Xmx1G -Dhive.metastore.uris=thrift://hive-metastore:9083"
+#         - name: IS_RESUME
+#           value: "true"
+#         volumeMounts:
+#         - name: warehouse
+#           mountPath: /opt/hive/data/warehouse
+#         - name: metastore-cfg-vol
+#           mountPath: /opt/hive/conf/hive-site.xml
+#           subPath: hive-site.xml
+#         resources:
+#           requests:
+#             memory: "512Mi"
+#             cpu: "500m"
+#           limits:
+#             memory: "1Gi"
+#             cpu: "1000m"
+#         ports:
+#         - containerPort: 10000
+#         - containerPort: 10002
+#       volumes:
+#       - name: warehouse
+#         persistentVolumeClaim:
+#           claimName: hive-warehouse-pvc
+#       - name: postgres-jar
+#         emptyDir: {}
+#       - name: metastore-cfg-vol
+#         configMap:
+#           name: metastore-cfg
