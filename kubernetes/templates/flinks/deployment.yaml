@@ -4,7 +4,7 @@ kind: FlinkDeployment
 metadata:
   name: kafka-to-print
 spec:
-  image: flink-application:0.1.13
+  image: jongwowflinkmyapp:0.1.13
   flinkVersion: v1_18
   flinkConfiguration:
     taskmanager.numberOfTaskSlots: "2"
