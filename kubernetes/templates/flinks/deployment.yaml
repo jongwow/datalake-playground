@@ -4,7 +4,7 @@ kind: FlinkDeployment
 metadata:
   name: kafka-to-print
 spec:
-  image: jongwowflink:0.1.10
+  image: flink-application:0.1.13
   flinkVersion: v1_18
   flinkConfiguration:
     taskmanager.numberOfTaskSlots: "2"
@@ -21,3 +21,9 @@ spec:
     jarURI: local:///opt/flink/usrlib/myapp-0.1-SNAPSHOT-all.jar
     parallelism: 2
     upgradeMode: stateless
+    args: [
+      "--kafka-password",
+      "bYYnBX7ITw",
+      "--kafka-username",
+      "user1"
+    ]
