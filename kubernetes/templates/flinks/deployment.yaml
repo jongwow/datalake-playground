@@ -1,0 +1,29 @@
+# jongwowflink
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: kafka-to-print
+spec:
+  image: jongwowflinkmyapp:0.1.13
+  flinkVersion: v1_18
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "2"
+  serviceAccount: flink
+  jobManager:
+    resource:
+      memory: "1024m"
+      cpu: 1
+  taskManager:
+    resource:
+      memory: "1024m"
+      cpu: 1
+  job:
+    jarURI: local:///opt/flink/usrlib/myapp-0.1-SNAPSHOT-all.jar
+    parallelism: 2
+    upgradeMode: stateless
+    args: [
+      "--kafka-password",
+      "bYYnBX7ITw",
+      "--kafka-username",
+      "user1"
+    ]
