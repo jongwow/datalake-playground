@@ -268,7 +268,7 @@ sasl:
   ## The client secrets are only required when using oauthbearer as sasl mechanism. 
   ## Client, interbroker and controller passwords are only required if the sasl mechanism includes something other than oauthbearer.
   ## 
-  existingSecret: ""
+  existingSecret: "kafka-user-passwords"
 ## @section Kafka TLS parameters
 ## Kafka TLS settings, required if SSL or SASL_SSL listeners are configured
 ##
@@ -621,7 +621,7 @@ controller:
   ## @param controller.podSecurityContext.seccompProfile.type Set Kafka pods's Security Context seccomp profile
   ##
   podSecurityContext:
-    enabled: true
+    enabled: false
     fsGroupChangePolicy: Always
     sysctls: []
     supplementalGroups: []
@@ -647,7 +647,7 @@ controller:
   ##     readOnlyRootFilesystem: true
   ##
   containerSecurityContext:
-    enabled: true
+    enabled: false
     seLinuxOptions: {}
     runAsUser: 1001
     runAsGroup: 1001
@@ -1032,7 +1032,7 @@ broker:
   ## @param broker.podSecurityContext.seccompProfile.type Set Kafka pod's Security Context seccomp profile
   ##
   podSecurityContext:
-    enabled: true
+    enabled: false
     fsGroupChangePolicy: Always
     sysctls: []
     supplementalGroups: []
@@ -1057,7 +1057,7 @@ broker:
   ##     readOnlyRootFilesystem: true
   ##
   containerSecurityContext:
-    enabled: true
+    enabled: false
     seLinuxOptions: {}
     runAsUser: 1001
     runAsGroup: 1001
@@ -1449,7 +1449,7 @@ externalAccess:
     ##     readOnlyRootFilesystem: true
     ##
     containerSecurityContext:
-      enabled: true
+      enabled: false
       seLinuxOptions: {}
       runAsUser: 1001
       runAsGroup: 1001
@@ -1945,7 +1945,7 @@ metrics:
     ##     readOnlyRootFilesystem: true
     ##
     containerSecurityContext:
-      enabled: true
+      enabled: false
       seLinuxOptions: {}
       runAsUser: 1001
       runAsGroup: 1001
@@ -2153,7 +2153,7 @@ metrics:
     ##     readOnlyRootFilesystem: true
     ##
     containerSecurityContext:
-      enabled: true
+      enabled: false
       seLinuxOptions: {}
       runAsUser: 1001
       runAsGroup: 1001
@@ -2478,7 +2478,7 @@ provisioning:
   ## @param provisioning.podSecurityContext.seccompProfile.type Set Kafka provisioning pod's Security Context seccomp profile
   ##
   podSecurityContext:
-    enabled: true
+    enabled: false
     fsGroupChangePolicy: Always
     sysctls: []
     supplementalGroups: []
@@ -2503,7 +2503,7 @@ provisioning:
   ##     readOnlyRootFilesystem: true
   ##
   containerSecurityContext:
-    enabled: true
+    enabled: false
     seLinuxOptions: {}
     runAsUser: 1001
     runAsGroup: 1001

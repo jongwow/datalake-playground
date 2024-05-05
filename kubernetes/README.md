@@ -8,12 +8,28 @@
 - Local 에 Docker Desktop 의 K8S 가 활성화되어있어야합니다.
 
 ## 세팅
+
+datalake 환경에서 사용할 namespace 를 생성해주세요. (`ns-datalake`)
+```shell
+kubectl create namespace ns-datalake;
+```
+
 - storage 를 휘발해서 사용하지 않기 위해서 storage 관련된 yaml 은 분리했습니다. storage 관련된 yaml 은 최초 1회만 실행해주세요.
 ```shell
 kubectl apply -f ./templates/metastore/hive.storage.yaml
 kubectl apply -f ./templates/minio/minio.storage.yaml
 kubectl apply -f ./templates/postgres/postgres.storage.yaml
 ```
+
+flink-kubernetes-operator 설치
+```shell
+helm install flink-kubernetes-operator flink-operator-repo/flink-kubernetes-operator  --set webhook.create=false -n ns-datalake
+```
+
+- [링크](https://nightlies.apache.org/flink/flink-kubernetes-operator-docs-main/docs/try-flink-kubernetes-operator/quick-start/) 참고.
+- namespace 를 default 를 쓰지 않기 때문에(?) 에러가 발생하는 것 같습니다. cert-manager 를 설치하지 않고 webhook.create=false 옵션을 주고 operator 를 설치합니다.
+
+
 
 ## 서비스들 띄우기
 
