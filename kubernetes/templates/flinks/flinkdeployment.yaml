@@ -1,0 +1,53 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-to-print-config
+data:
+  config.properties: |
+    source.connector=kafka
+    source.topic=test-topic
+    source.scan.startup.mode=earliest-offset
+    source.group.id=flink-test-1
+    source.value.format=json
+    source.value.json.ignore-parse-errors=true
+    source.properties.bootstrap.servers=kafka:9092
+    source.properties.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user1\" password=\"bYYnBX7ITw\";
+    source.properties.sasl.jaas.mechanism=PLAIN
+    source.properties.security.protocol=SASL_PLAINTEXT
+---
+# jongwowflink
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: kafka-to-print
+spec:
+  image: jongwowflink:0.1.18
+  flinkVersion: v1_18
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "2"
+  serviceAccount: flink
+  podTemplate:
+    spec:
+      containers:
+        # Do not change the main container name
+        - name: flink-main-container
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: kafka-to-print-config
+  jobManager:
+    resource:
+      memory: "1024m"
+      cpu: 1
+  taskManager:
+    resource:
+      memory: "1024m"
+      cpu: 1
+  job:
+    jarURI: local:///opt/flink/usrlib/myapp-0.1-SNAPSHOT-all.jar
+    parallelism: 2
+    upgradeMode: stateless
