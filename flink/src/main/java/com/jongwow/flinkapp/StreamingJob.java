@@ -77,9 +77,7 @@ public class StreamingJob {
         tableApi.setKafkaConfig("properties.sasl.jaas.config", kafkaJaasConfigModule+" required username=\"" + kafkaJaasUsername + "\" password=\"" + kafkaJaasPassword + "\";");
         tableApi.setKafkaConfig("properties.sasl.mechanism", "PLAIN");
         tableApi.setKafkaConfig("properties.security.protocol", "SASL_PLAINTEXT");
+        tableApi.setKafkaConfig("value.json.ignore-parse-errors", "true");
         return tableApi.build();
     }
 }
-
-
-
