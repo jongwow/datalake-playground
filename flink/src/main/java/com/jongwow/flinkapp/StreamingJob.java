@@ -18,11 +18,10 @@
 
 package com.jongwow.flinkapp;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.jongwow.flinkapp.config.SinkIcebergConfig;
 import com.jongwow.flinkapp.config.SourceColumn;
 import com.jongwow.flinkapp.config.SourceKafkaConfig;
+import com.jongwow.flinkapp.sinkconnector.SinkTableQueryBuilder;
 import com.jongwow.flinkapp.sql.SourceKafkaTableDefinition;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -30,12 +29,8 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.*;
 import org.apache.flink.table.api.bridge.java.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Properties;
-
-import static jdk.internal.org.jline.utils.InfoCmp.Capability.columns;
 
 /**
  * Skeleton for a Flink DataStream Job.
@@ -63,9 +58,22 @@ public class StreamingJob {
 
 
         SourceKafkaConfig sourceConfig = getSourceConfig(fileParams);
-        tableEnv.executeSql(getSourceTableSql2(sourceConfig));
-        tableEnv.executeSql("SELECT user_id, item_id FROM SourceKafkaTable").print();
+        tableEnv.executeSql(getSourceTableSql(sourceConfig));
+        tableEnv.executeSql("SHOW CREATE TABLE SourceTable").print();
+
+        SinkIcebergConfig sinkConfig = SinkTableQueryBuilder.getSinkConfig(fileParams);
+        if (sinkConfig != null) {
+            String createSinkTable = SinkTableQueryBuilder.getCreateSinkTable(sinkConfig);
+            tableEnv.executeSql(createSinkTable);
+            tableEnv.executeSql("SHOW CREATE TABLE SinkTable").print();
+
+            tableEnv.sqlQuery("SELECT * FROM SourceTable").insertInto("SinkTable").execute();
+        } else {
+            tableEnv.executeSql("SELECT user_id, item_id, behavior FROM SourceKafkaTable").print();
+        }
+
     }
+
 
     public static SourceKafkaConfig getSourceConfig(ParameterTool params){
         String SOURCE = "source.";
@@ -107,8 +115,8 @@ public class StreamingJob {
         return config;
     }
 
-    public static String getSourceTableSql2(SourceKafkaConfig config){
-        SourceKafkaTableDefinition tableApi = new SourceKafkaTableDefinition("SourceKafkaTable");
+    public static String getSourceTableSql(SourceKafkaConfig config){
+        SourceKafkaTableDefinition tableApi = new SourceKafkaTableDefinition("SourceTable");
 
         List<SourceColumn> columns = config.getColumns();
         columns.forEach(c -> {

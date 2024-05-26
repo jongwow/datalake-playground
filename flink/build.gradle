@@ -8,6 +8,8 @@ plugins {
 ext {
     javaVersion = '1.8'
     flinkVersion = '1.18.1'
+    flinkMinorVerion = "1.18"
+    icebergVersion = "1.5.0"
     kafkaConnectorVersion = "3.1.0-1.18"
     scalaBinaryVersion = '2.12'
     slf4jVersion = '1.7.36'
@@ -63,14 +65,18 @@ dependencies {
     implementation "org.apache.flink:flink-table-api-java-bridge:${flinkVersion}"
     implementation "org.apache.flink:flink-clients:${flinkVersion}"
 
+    implementation "org.apache.flink:flink-table-runtime:${flinkVersion}"
+    implementation "org.apache.flink:flink-table-planner-loader:${flinkVersion}"
+    implementation "org.apache.iceberg:iceberg-flink-runtime-${flinkMinorVerion}:${icebergVersion}"
+
     // --------------------------------------------------------------
     // Dependencies that should be part of the shadow jar, e.g.
     // connectors. These must be in the flinkShadowJar configuration!
     // --------------------------------------------------------------
     flinkShadowJar "org.apache.flink:flink-connector-kafka:${kafkaConnectorVersion}"
     flinkShadowJar "org.apache.flink:flink-parquet:${flinkVersion}"
-    flinkShadowJar 'com.google.code.gson:gson:2.11.0'
-
+    flinkShadowJar "com.google.code.gson:gson:2.11.0"
+    flinkShadowJar "software.amazon.awssdk:url-connection-client:2.25.23"
 
     runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"
     runtimeOnly "org.apache.logging.log4j:log4j-api:${log4jVersion}"

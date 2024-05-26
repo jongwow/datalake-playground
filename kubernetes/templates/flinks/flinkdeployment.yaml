@@ -7,7 +7,7 @@ data:
   config.properties: |
     source.connector=kafka
     source.topic=test-topic
-    source.scan.startup.mode=earliest-offset
+    source.scan.startup.mode=group-offsets
     source.group.id=flink-test-1
     source.value.format=json
     source.value.json.ignore-parse-errors=true
@@ -15,6 +15,13 @@ data:
     source.properties.sasl.jaas.config=org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user1\" password=\"bYYnBX7ITw\";
     source.properties.sasl.jaas.mechanism=PLAIN
     source.properties.security.protocol=SASL_PLAINTEXT
+    sink.connector=iceberg
+    sink.catalog-name=iceberg
+    sink.catalog-type=hive
+    sink.catalog-database=test_database
+    sink.catalog-table=user_behavior
+    sink.uri=thrift://hive-metastore:9083
+    sink.schema=user_id BIGINT, item_id BIGINT, behavior STRING, event_time TIMESTAMP(6)
 ---
 # jongwowflink
 apiVersion: flink.apache.org/v1beta1
@@ -22,10 +29,16 @@ kind: FlinkDeployment
 metadata:
   name: kafka-to-print
 spec:
-  image: jongwowflink:0.1.18
+  image: jongwowflink:0.2.0-rc11
   flinkVersion: v1_18
   flinkConfiguration:
     taskmanager.numberOfTaskSlots: "2"
+    s3.access-key: "myminio"
+    s3.secret-key: "myminio123"
+    s3.endpoint: "http://myminio:9000"
+    s3.streaming.part.size: "5MB"
+    s3.path.style.access: "true"
+    # fs.s3a.aws.credentials.provider: org.apache.flink.fs.s3.common.token.DynamicTemporaryAWSCredentialsProvider
   serviceAccount: flink
   podTemplate:
     spec:
@@ -35,10 +48,16 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /etc/config
+            - name: metastore-cfg-vol
+              mountPath: /etc/hive
+              subPath: hive-site.xml
       volumes:
         - name: config-volume
           configMap:
             name: kafka-to-print-config
+        - name: metastore-cfg-vol
+          configMap:
+            name: metastore-cfg
   jobManager:
     resource:
       memory: "1024m"
