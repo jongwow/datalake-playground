@@ -69,6 +69,7 @@ dependencies {
     // --------------------------------------------------------------
     flinkShadowJar "org.apache.flink:flink-connector-kafka:${kafkaConnectorVersion}"
     flinkShadowJar "org.apache.flink:flink-parquet:${flinkVersion}"
+    flinkShadowJar 'com.google.code.gson:gson:2.11.0'
 
 
     runtimeOnly "org.apache.logging.log4j:log4j-slf4j-impl:${log4jVersion}"

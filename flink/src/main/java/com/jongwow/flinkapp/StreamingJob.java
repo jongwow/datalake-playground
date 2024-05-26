@@ -18,13 +18,24 @@
 
 package com.jongwow.flinkapp;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.jongwow.flinkapp.config.SourceColumn;
+import com.jongwow.flinkapp.config.SourceKafkaConfig;
 import com.jongwow.flinkapp.sql.SourceKafkaTableDefinition;
 import org.apache.flink.api.common.RuntimeExecutionMode;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.table.api.*;
 import org.apache.flink.table.api.bridge.java.*;
-import org.apache.flink.types.Row;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+
+import static jdk.internal.org.jline.utils.InfoCmp.Capability.columns;
 
 /**
  * Skeleton for a Flink DataStream Job.
@@ -43,43 +54,77 @@ public class StreamingJob {
     public static void main(String[] args) throws Exception {
         // Sets up the execution environment, which is the main entry point
         // to building Flink applications.
-        ParameterTool parameters = ParameterTool.fromArgs(args);
-        String kafkaPassword = parameters.get("kafka-password", "ynYIrsvqbn");
-        String kafkaUsername = parameters.get("kafka-username", "user1");
+        ParameterTool fileParams = ParameterTool.fromPropertiesFile("/etc/config/config.properties");
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setRuntimeMode(RuntimeExecutionMode.STREAMING);
-        env.getConfig().setGlobalJobParameters(parameters);
+        env.getConfig().setGlobalJobParameters(fileParams);
         TableEnvironment tableEnv = StreamTableEnvironment.create(env);
 
 
-        tableEnv.executeSql(getSourceTableSQL(kafkaUsername, kafkaPassword));
+        SourceKafkaConfig sourceConfig = getSourceConfig(fileParams);
+        tableEnv.executeSql(getSourceTableSql2(sourceConfig));
         tableEnv.executeSql("SELECT user_id, item_id FROM SourceKafkaTable").print();
     }
 
-    public static String getSourceTableSQL(String kafkaJaasUsername, String kafkaJaasPassword) {
+    public static SourceKafkaConfig getSourceConfig(ParameterTool params){
+        String SOURCE = "source.";
+        Properties properties = params.getProperties();
+        SourceKafkaConfig config = new SourceKafkaConfig();
+
+        String connector = properties.getProperty(SOURCE + "connector");
+        String topic = properties.getProperty(SOURCE + "topic");
+        String scanStartupMode = properties.getProperty(SOURCE + "scan.startup.mode");
+        String kafkaGroupId = properties.getProperty(SOURCE + "group.id");
+        String valueFormat = properties.getProperty(SOURCE + "value.format");
+        String valueIgnoreError = properties.getProperty(SOURCE + "value.json.ignore-parse-errors");
+        String saslJaasConfig = properties.getProperty(SOURCE + "properties.sasl.jaas.config");
+        String securityProtocol = properties.getProperty(SOURCE + "properties.security.protocol");
+        String saslJaasMechanism = properties.getProperty(SOURCE + "properties.sasl.mechanism");
+        String bootstrapServers = properties.getProperty(SOURCE + "properties.bootstrap.servers");
+
+        System.out.println("saslJaasConfig: "+saslJaasConfig);
+
+
+        config.setConnector(connector);
+        config.setSaslMechanism(saslJaasMechanism);
+        config.setBootStrapServers(bootstrapServers);
+        config.setSaslJaasConfig(saslJaasConfig);
+        config.setGroupId(kafkaGroupId);
+        config.setScanStartupMode(scanStartupMode);
+        config.setTopicName(topic);
+        config.setValueFormat(valueFormat);
+        config.setValueJsonIgnoreParseError(valueIgnoreError);
+        config.setSecurityProtocol(securityProtocol);
+
+        config.addColumn("event_time", "TIMESTAMP(3)", "FROM 'timestamp'");
+        config.addColumn("partition", "BIGINT", "VIRTUAL");
+        config.addColumn("offset", "BIGINT", "VIRTUAL");
+        config.addColumn("user_id", "BIGINT", null);
+        config.addColumn("item_id", "BIGINT", null);
+        config.addColumn("behavior", "STRING", null);
+
+        return config;
+    }
+
+    public static String getSourceTableSql2(SourceKafkaConfig config){
         SourceKafkaTableDefinition tableApi = new SourceKafkaTableDefinition("SourceKafkaTable");
-        String kafkaJaasConfigModule = "org.apache.kafka.common.security.plain.PlainLoginModule";
-        String kafkaGroupId = "testGroup";
-        String scanStartupMode = "earliest-offset";
-        tableApi.addColumn("event_time", "TIMESTAMP(3)", "FROM 'timestamp'");
-        tableApi.addColumn("partition", "BIGINT", "VIRTUAL");
-        tableApi.addColumn("offset", "BIGINT", "VIRTUAL");
-        tableApi.addColumn("user_id", "BIGINT", null);
-        tableApi.addColumn("item_id", "BIGINT", null);
-        tableApi.addColumn("behavior", "STRING", null);
-        tableApi.setScanStartupMode(scanStartupMode);
-        tableApi.setTopic("user_behavior");
-        tableApi.setValueFormat("json");
-        tableApi.setKafkaConfig("connector", "kafka");
-        tableApi.setKafkaConfig("properties.bootstrap.servers", "kafka:9092");
-        tableApi.setKafkaConfig("properties.group.id", kafkaGroupId);
-        tableApi.setKafkaConfig("properties.sasl.jaas.config", kafkaJaasConfigModule+" required username=\"" + kafkaJaasUsername + "\" password=\"" + kafkaJaasPassword + "\";");
-        tableApi.setKafkaConfig("properties.sasl.mechanism", "PLAIN");
-        tableApi.setKafkaConfig("properties.security.protocol", "SASL_PLAINTEXT");
+
+        List<SourceColumn> columns = config.getColumns();
+        columns.forEach(c -> {
+            tableApi.addColumn(c.name, c.type, c.expression);
+        });
+
+        tableApi.setScanStartupMode(config.getScanStartupMode());
+        tableApi.setTopic(config.getTopicName());
+        tableApi.setValueFormat(config.getValueFormat());
+        tableApi.setKafkaConfig("connector", config.getConnector());
+        tableApi.setKafkaConfig("properties.bootstrap.servers", config.getBootStrapServers());
+        tableApi.setKafkaConfig("properties.group.id", config.getGroupId());
+        tableApi.setKafkaConfig("properties.sasl.jaas.config", config.getSaslJaasConfig());
+        tableApi.setKafkaConfig("properties.sasl.mechanism", config.getSaslMechanism());
+        tableApi.setKafkaConfig("properties.security.protocol", config.getSecurityProtocol());
+        tableApi.setKafkaConfig("value.json.ignore-parse-errors", config.getValueJsonIgnoreParseError());
         return tableApi.build();
     }
 }
-
-
-
