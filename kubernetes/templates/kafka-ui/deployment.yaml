@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: kafka-ui
-        image: provectuslabs/kafka-ui:latest
+        image: ghcr.io/kafbat/kafka-ui:latest
         ports:
         - containerPort: 8080
         env:
