@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    namespace: ns-datalake
+    name: k6-kafka
+    labels:
+        app.kubernetes.io/name: k6-kafka
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: k6-kafka
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/name: k6-kafka
+        spec:
+            containers:
+                - name: k6-kafka
+                  image: mostafamoradian/xk6-kafka:latest
+                  ports:
+                  - name: kafka
+                    containerPort: 9092
+                  command:
+                      - /bin/sh
+                      - -c
+                      - sleep infinity
