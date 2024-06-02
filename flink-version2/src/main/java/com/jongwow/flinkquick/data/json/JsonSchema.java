@@ -6,4 +6,11 @@ import java.util.List;
 public class JsonSchema {
     public List<JsonColumn> columns = new ArrayList<>();
     public String tableName;
+
+    public JsonSchema() {
+    }
+
+    public JsonSchema(String tableName) {
+        this.tableName = tableName;
+    }
 }

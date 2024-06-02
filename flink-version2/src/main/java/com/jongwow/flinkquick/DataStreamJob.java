@@ -20,6 +20,8 @@ package com.jongwow.flinkquick;
 
 import com.jongwow.flinkquick.data.DmsMessage;
 import com.jongwow.flinkquick.data.Message;
+import com.jongwow.flinkquick.data.json.JsonConverter;
+import com.jongwow.flinkquick.data.json.JsonSchema;
 import com.jongwow.flinkquick.processor.JsonProcessor;
 import com.jongwow.flinkquick.transform.DmsTransformation;
 import com.jongwow.flinkquick.transform.Transformation;
@@ -31,6 +33,9 @@ import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsIni
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Skeleton for a Flink DataStream Job.
@@ -55,7 +60,8 @@ public class DataStreamJob {
         KafkaSource<String> source = getKafkaSource();
         DataStreamSource<String> kafkaStream = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 
-        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("dms", null);
+        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("dms", getJsonSchemaFromArgs());
+//        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("json", null);
 
         DataStream<Message> parseJson = kafkaStream
                 .process(new JsonProcessor(transformation))
@@ -80,5 +86,17 @@ public class DataStreamJob {
                 .setStartingOffsets(OffsetsInitializer.earliest())
                 .setValueOnlyDeserializer(new SimpleStringSchema())
                 .build();
+    }
+
+    //TODO: from args or env or external?
+    public static JsonSchema getJsonSchemaFromArgs() {
+        JsonSchema jsonSchema = new JsonSchema("user_activity");
+        List<String> columns = new ArrayList<>();
+        // sample
+        columns.add("user_id NUMBER");
+        columns.add("item_id NUMBER");
+        columns.add("behavior STRING");
+        jsonSchema.columns = JsonConverter.convertJsonColumns(columns);
+        return jsonSchema;
     }
 }
