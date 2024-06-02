@@ -1,8 +1,9 @@
 package com.jongwow.flinkquick.data.json;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class JsonSchema {
-    private List<JsonColumn> columns;
-    private String tableName;
+    public List<JsonColumn> columns = new ArrayList<>();
+    public String tableName;
 }

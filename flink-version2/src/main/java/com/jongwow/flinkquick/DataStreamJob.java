@@ -55,14 +55,13 @@ public class DataStreamJob {
         KafkaSource<String> source = getKafkaSource();
         DataStreamSource<String> kafkaStream = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 
-        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("dms");
+        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("dms", null);
 
         DataStream<Message> parseJson = kafkaStream
                 .process(new JsonProcessor(transformation))
                 .name("parse json");
 
         parseJson.print().name("kafka print");
-
 
 
         // Execute program, beginning computation.

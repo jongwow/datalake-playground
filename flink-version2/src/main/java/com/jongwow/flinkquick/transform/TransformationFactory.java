@@ -1,14 +1,16 @@
 package com.jongwow.flinkquick.transform;
 
 import com.jongwow.flinkquick.data.Message;
+import com.jongwow.flinkquick.data.json.JsonSchema;
 
 public class TransformationFactory {
-    public static Transformation<? extends Message> getTransformation(String type){
+    public static Transformation<? extends Message> getTransformation(String type, JsonSchema jsonSchema){
         if ("dms".equals(type)) {
             return new DmsTransformation();
         } else if ("json".equals(type)) {
-            return new JsonTransformation();
+            return new JsonTransformation(jsonSchema);
         }
         throw new IllegalArgumentException("Invalid type: "+type);
     }
+
 }
