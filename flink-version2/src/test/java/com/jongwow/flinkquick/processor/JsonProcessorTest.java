@@ -2,6 +2,9 @@ package com.jongwow.flinkquick.processor;
 
 import com.jongwow.flinkquick.data.DmsMessage;
 import com.jongwow.flinkquick.data.Message;
+import com.jongwow.flinkquick.data.json.DataType;
+import com.jongwow.flinkquick.data.json.JsonColumn;
+import com.jongwow.flinkquick.data.json.JsonConverter;
 import com.jongwow.flinkquick.transform.DmsTransformation;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +12,12 @@ import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JsonProcessorTest {
 
@@ -40,5 +49,44 @@ public class JsonProcessorTest {
         dmsMessage.setData(jsonNode.get("data"));
 
         Mockito.verify(collectorMock).collect(dmsMessage);
+    }
+
+    @Test
+    public void testJsonSchema() {
+        // given
+        List<String> columns = new ArrayList<>();
+        // JSON 의 data type 은 string, number, array, boolean, null, Object 를 갖는다.
+        columns.add("user_id NUMBER");
+        columns.add("item_id NumBer");
+        columns.add("behavior STRING");
+        // when
+        List<JsonColumn> collect = columns.stream().map(JsonConverter::convertJsonColumn).collect(Collectors.toList());
+        // then
+        List<JsonColumn> expected = new ArrayList<>();
+        expected.add(new JsonColumn("user_id", DataType.BIGINT));
+        expected.add(new JsonColumn("item_id", DataType.BIGINT));
+        expected.add(new JsonColumn("behavior", DataType.VARCHAR));
+
+        assertThat(collect).isEqualTo(expected);
+    }
+
+    @Test
+    public void testJsonSchema_ThrowError() {
+        // given
+        List<String> columns = new ArrayList<>();
+        // JSON 의 data type 은 string, number, array, boolean, null, Object 를 갖는다.
+        columns.add("user_id NUMBER");
+        columns.add("item_id integer");
+        columns.add("behavior STRING");
+
+        // when
+        List<JsonColumn> collect = columns.stream().map(JsonConverter::convertJsonColumn).collect(Collectors.toList());
+        // then
+        List<JsonColumn> expected = new ArrayList<>();
+        expected.add(new JsonColumn("user_id", DataType.BIGINT));
+        expected.add(new JsonColumn("item_id", DataType.BIGINT));
+        expected.add(new JsonColumn("behavior", DataType.VARCHAR));
+
+        assertThat(collect).isEqualTo(expected);
     }
 }

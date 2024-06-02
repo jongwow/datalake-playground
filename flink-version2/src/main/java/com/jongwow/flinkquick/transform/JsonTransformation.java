@@ -7,6 +7,7 @@ import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMap
 
 public class JsonTransformation implements Transformation<JsonMessage>{
 
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Override
     public JsonMessage transform(String raw) throws Exception {

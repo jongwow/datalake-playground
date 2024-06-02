@@ -55,7 +55,6 @@ public class DataStreamJob {
         KafkaSource<String> source = getKafkaSource();
         DataStreamSource<String> kafkaStream = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 
-
         Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("dms");
 
         DataStream<Message> parseJson = kafkaStream

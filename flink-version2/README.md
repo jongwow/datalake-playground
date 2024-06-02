@@ -45,3 +45,4 @@ package: com.jongwow.flinkquick
 ## Libs
 
 https://nightlies.apache.org/flink/flink-docs-release-1.17/docs/connectors/datastream/formats/json/
+https://github.com/apache/flink-cdc
