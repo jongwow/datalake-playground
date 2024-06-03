@@ -1,16 +1,12 @@
 package com.jongwow.flinkquick.processor;
 
-import com.jongwow.flinkquick.data.DmsMessage;
-
 import com.jongwow.flinkquick.data.Message;
 import com.jongwow.flinkquick.data.kafka.KafkaStringRecord;
 import com.jongwow.flinkquick.transform.Transformation;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

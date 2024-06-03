@@ -5,8 +5,8 @@ import java.io.Serializable;
 public class KafkaStringRecord implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private long logAppendTime;
-    private String value;
+    private final long logAppendTime;
+    private final String value;
 
     public KafkaStringRecord(long logAppendTime, String value) {
         this.logAppendTime = logAppendTime;
