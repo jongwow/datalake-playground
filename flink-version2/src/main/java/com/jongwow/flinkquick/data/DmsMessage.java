@@ -6,6 +6,8 @@ public final class DmsMessage extends Message {
     private JsonNode data;
     private JsonNode metadata;
 
+    private Long regTs;
+
 
     public DmsMessage() {
     }
@@ -25,6 +27,10 @@ public final class DmsMessage extends Message {
 
     public void setMetadata(JsonNode metaObject) {
         this.metadata = metaObject;
+    }
+
+    public void setRegTs(Long regTs) {
+        this.regTs = regTs;
     }
 
     @Override

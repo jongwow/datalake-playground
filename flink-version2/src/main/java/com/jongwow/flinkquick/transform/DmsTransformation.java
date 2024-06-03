@@ -1,6 +1,7 @@
 package com.jongwow.flinkquick.transform;
 
 import com.jongwow.flinkquick.data.DmsMessage;
+import com.jongwow.flinkquick.data.kafka.KafkaStringRecord;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,8 +10,8 @@ public class DmsTransformation implements Transformation<DmsMessage> {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Override
-    public DmsMessage transform(String raw) throws Exception {
-        JsonNode jsonNode = objectMapper.readTree(raw);
+    public DmsMessage transform(KafkaStringRecord raw) throws Exception {
+        JsonNode jsonNode = objectMapper.readTree(raw.getValue());
         JsonNode dataObject = jsonNode.get("data");
         JsonNode metaObject = jsonNode.get("metadata");
         //TODO: 어차피 json 이니까 check method 를 정의해서 transform 에서 구현하기
@@ -21,6 +22,7 @@ public class DmsTransformation implements Transformation<DmsMessage> {
         DmsMessage dmsMessage = new DmsMessage();
         dmsMessage.setData(dataObject);
         dmsMessage.setMetadata(metaObject);
+        dmsMessage.setRegTs(raw.getLogAppendTime());
         return dmsMessage;
     }
 }

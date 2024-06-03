@@ -3,6 +3,7 @@ package com.jongwow.flinkquick.processor;
 import com.jongwow.flinkquick.data.DmsMessage;
 
 import com.jongwow.flinkquick.data.Message;
+import com.jongwow.flinkquick.data.kafka.KafkaStringRecord;
 import com.jongwow.flinkquick.transform.Transformation;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
@@ -14,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class JsonProcessor extends ProcessFunction<String, Message> {
+public class JsonProcessor extends ProcessFunction<KafkaStringRecord, Message> {
     private static final long serialVersionUID = 1L;
     private final Transformation<? extends Message> transformation;
 
@@ -36,7 +37,7 @@ public class JsonProcessor extends ProcessFunction<String, Message> {
     }
 
     @Override
-    public void processElement(String raw, ProcessFunction<String, Message>.Context context, Collector<Message> collector) throws Exception {
+    public void processElement(KafkaStringRecord raw, ProcessFunction<KafkaStringRecord, Message>.Context context, Collector<Message> collector) throws Exception {
         try {
             Message transform = transformation.transform(raw);
             collector.collect(transform);
