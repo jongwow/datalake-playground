@@ -36,6 +36,7 @@ package: com.jongwow.flinkquick
 ```
 
 ## Goal
+- [ ] json 형태 sink
 - [ ] DMS 형태의 메세지 파싱
 - [ ] Table 이름별로 분류
 - [ ] iceberg connector 작성

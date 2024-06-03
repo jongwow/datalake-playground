@@ -17,7 +17,7 @@ public class JsonMessage extends Message {
 
     @Override
     public String toString() {
-        return "Json{" + this.data + "}";
+        return "Json" + this.data;
     }
 
     @Override

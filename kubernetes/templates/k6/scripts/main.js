@@ -19,7 +19,7 @@ const saslConfig = {
     password: "bYYnBX7ITw"
 }
 
-const topicName = "test-topic";
+const topicName = "test-json-topic";
 
 const producer = new Writer({
     brokers: [bootstrap],

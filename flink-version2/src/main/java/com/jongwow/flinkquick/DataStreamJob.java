@@ -18,12 +18,10 @@
 
 package com.jongwow.flinkquick;
 
-import com.jongwow.flinkquick.data.DmsMessage;
 import com.jongwow.flinkquick.data.Message;
-import com.jongwow.flinkquick.data.json.JsonConverter;
+import com.jongwow.flinkquick.utils.JsonConverter;
 import com.jongwow.flinkquick.data.json.JsonSchema;
 import com.jongwow.flinkquick.processor.JsonProcessor;
-import com.jongwow.flinkquick.transform.DmsTransformation;
 import com.jongwow.flinkquick.transform.Transformation;
 import com.jongwow.flinkquick.transform.TransformationFactory;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
@@ -60,8 +58,8 @@ public class DataStreamJob {
         KafkaSource<String> source = getKafkaSource();
         DataStreamSource<String> kafkaStream = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 
-        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("dms", getJsonSchemaFromArgs());
-//        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("json", null);
+//        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("dms", null);
+        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("json", getJsonSchemaFromArgs());
 
         DataStream<Message> parseJson = kafkaStream
                 .process(new JsonProcessor(transformation))
@@ -78,7 +76,7 @@ public class DataStreamJob {
     public static KafkaSource<String> getKafkaSource() {
         return KafkaSource.<String>builder()
                 .setBootstrapServers("localhost:9095")
-                .setTopics("test-topic")
+                .setTopics("test-json-topic")
                 .setGroupId("my-group")
                 .setProperty("security.protocol", "SASL_PLAINTEXT")
                 .setProperty("sasl.mechanism", "PLAIN")

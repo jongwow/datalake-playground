@@ -1,30 +1,33 @@
 package com.jongwow.flinkquick.data.json;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class JsonColumn {
+public class JsonColumn implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String columnName;
-    private final DataType dataType;
+    private final JsonDataType jsonDataType;
 
-    public JsonColumn(String columnName, DataType dataType) {
+    public JsonColumn(String columnName, JsonDataType jsonDataType) {
         this.columnName = columnName;
-        this.dataType = dataType;
+        this.jsonDataType = jsonDataType;
     }
 
     public String getColumnName() {
         return columnName;
     }
 
-    public DataType getDataType() {
-        return dataType;
+    public JsonDataType getDataType() {
+        return jsonDataType;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
+    public boolean equals(Object o) {
+        if (o == this) {
             return true;
         }
-        if (Objects.equals(this.columnName, ((JsonColumn) obj).getColumnName()) && this.dataType == ((JsonColumn) obj).getDataType()) {
+        if (Objects.equals(this.columnName, ((JsonColumn) o).getColumnName())
+                && this.jsonDataType == ((JsonColumn) o).getDataType()) {
             return true;
         }
         return false;

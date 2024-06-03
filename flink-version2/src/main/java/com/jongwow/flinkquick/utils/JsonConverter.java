@@ -1,15 +1,18 @@
-package com.jongwow.flinkquick.data.json;
+package com.jongwow.flinkquick.utils;
+
+import com.jongwow.flinkquick.data.json.JsonDataType;
+import com.jongwow.flinkquick.data.json.JsonColumn;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class JsonConverter {
-    public static DataType convertDataType(String dataType){
+    public static JsonDataType convertDataType(String dataType){
         if (dataType.equalsIgnoreCase("number")) {
-            return DataType.BIGINT;
+            return JsonDataType.BIGINT;
         }
         if (dataType.equalsIgnoreCase("string")) {
-            return DataType.VARCHAR;
+            return JsonDataType.VARCHAR;
         }
         throw new IllegalArgumentException("Invalid data type");
     }
