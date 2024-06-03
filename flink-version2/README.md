@@ -41,6 +41,7 @@ package: com.jongwow.flinkquick
 - [ ] Table 이름별로 분류
 - [ ] iceberg connector 작성
 - [ ] DDL 처리
+- https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/table/hive/overview/
 
 
 ## Libs
