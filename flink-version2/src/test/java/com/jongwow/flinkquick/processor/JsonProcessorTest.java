@@ -3,9 +3,9 @@ package com.jongwow.flinkquick.processor;
 import com.jongwow.flinkquick.data.DmsMessage;
 import com.jongwow.flinkquick.data.JsonMessage;
 import com.jongwow.flinkquick.data.Message;
-import com.jongwow.flinkquick.data.json.DataType;
+import com.jongwow.flinkquick.data.json.JsonDataType;
 import com.jongwow.flinkquick.data.json.JsonColumn;
-import com.jongwow.flinkquick.data.json.JsonConverter;
+import com.jongwow.flinkquick.utils.JsonConverter;
 import com.jongwow.flinkquick.data.json.JsonSchema;
 import com.jongwow.flinkquick.transform.DmsTransformation;
 import com.jongwow.flinkquick.transform.JsonTransformation;
@@ -15,9 +15,7 @@ import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
-import org.mockito.verification.VerificationMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -122,9 +120,9 @@ public class JsonProcessorTest {
         List<JsonColumn> collect = columns.stream().map(JsonConverter::convertJsonColumn).collect(Collectors.toList());
         // then
         List<JsonColumn> expected = new ArrayList<>();
-        expected.add(new JsonColumn("user_id", DataType.BIGINT));
-        expected.add(new JsonColumn("item_id", DataType.BIGINT));
-        expected.add(new JsonColumn("behavior", DataType.VARCHAR));
+        expected.add(new JsonColumn("user_id", JsonDataType.BIGINT));
+        expected.add(new JsonColumn("item_id", JsonDataType.BIGINT));
+        expected.add(new JsonColumn("behavior", JsonDataType.VARCHAR));
 
         assertThat(collect).isEqualTo(expected);
     }
