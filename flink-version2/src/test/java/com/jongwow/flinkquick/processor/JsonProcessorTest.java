@@ -3,12 +3,13 @@ package com.jongwow.flinkquick.processor;
 import com.jongwow.flinkquick.data.DmsMessage;
 import com.jongwow.flinkquick.data.JsonMessage;
 import com.jongwow.flinkquick.data.Message;
-import com.jongwow.flinkquick.data.json.JsonDataType;
 import com.jongwow.flinkquick.data.json.JsonColumn;
-import com.jongwow.flinkquick.utils.JsonConverter;
+import com.jongwow.flinkquick.data.json.JsonDataType;
 import com.jongwow.flinkquick.data.json.JsonSchema;
+import com.jongwow.flinkquick.data.kafka.KafkaStringRecord;
 import com.jongwow.flinkquick.transform.DmsTransformation;
 import com.jongwow.flinkquick.transform.JsonTransformation;
+import com.jongwow.flinkquick.utils.JsonConverter;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
@@ -26,11 +27,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class JsonProcessorTest {
 
-    private final ProcessFunction<String, Message>.Context contextMock = Mockito.mock(ProcessFunction.Context.class);
+    private final ProcessFunction<KafkaStringRecord, Message>.Context contextMock = Mockito.mock(ProcessFunction.Context.class);
     private final Collector<Message> collectorMock = Mockito.mock(Collector.class);
 
     private JsonProcessor jsonProcessor;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final static Long EPOCH_TIME = 1717431240156L;
 
     @Test
     public void testProcessElementOfJson_should() throws Exception {
@@ -45,13 +47,15 @@ public class JsonProcessorTest {
                 "}";
 
         // when
-        jsonProcessor.processElement(raw, contextMock, collectorMock);
+        KafkaStringRecord rawRecord = convertRaw(raw);
+        jsonProcessor.processElement(rawRecord, contextMock, collectorMock);
 
         // then
         JsonMessage jsonMessage = new JsonMessage();
         jsonMessage.addField("user_id", 123);
         jsonMessage.addField("item_id", 235);
         jsonMessage.addField("behavior", "login");
+        jsonMessage.addField("reg_ts", EPOCH_TIME);
 
         Mockito.verify(collectorMock).collect(jsonMessage);
     }
@@ -69,13 +73,15 @@ public class JsonProcessorTest {
                 "}";
 
         // when
-        jsonProcessor.processElement(raw, contextMock, collectorMock);
+        KafkaStringRecord rawRecord = convertRaw(raw);
+        jsonProcessor.processElement(rawRecord, contextMock, collectorMock);
 
         // then
         JsonMessage expected = new JsonMessage();
         expected.addField("user_id", 123);
         expected.addField("item_id", 235);
         expected.addField("behavior", "LOGIN"); // This is different
+        expected.addField("reg_ts", EPOCH_TIME);
 
         ArgumentCaptor<JsonMessage> captor = ArgumentCaptor.forClass(JsonMessage.class);
         Mockito.verify(collectorMock).collect(captor.capture());
@@ -98,12 +104,14 @@ public class JsonProcessorTest {
                 "}";
 
         // when
-        jsonProcessor.processElement(raw, contextMock, collectorMock);
+        KafkaStringRecord rawRecord = convertRaw(raw);
+        jsonProcessor.processElement(rawRecord, contextMock, collectorMock);
 
         // then
         DmsMessage dmsMessage = new DmsMessage();
         JsonNode jsonNode = objectMapper.readTree(raw);
         dmsMessage.setData(jsonNode.get("data"));
+        dmsMessage.setRegTs(EPOCH_TIME);
 
         Mockito.verify(collectorMock).collect(dmsMessage);
     }
@@ -146,6 +154,9 @@ public class JsonProcessorTest {
         columns.add("item_id Number");
         columns.add("behavior STRING");
         return columns;
+    }
+    public static KafkaStringRecord convertRaw(String raw){
+        return new KafkaStringRecord(EPOCH_TIME, raw);
     }
 
 }

@@ -19,13 +19,14 @@
 package com.jongwow.flinkquick;
 
 import com.jongwow.flinkquick.data.Message;
-import com.jongwow.flinkquick.utils.JsonConverter;
 import com.jongwow.flinkquick.data.json.JsonSchema;
+import com.jongwow.flinkquick.data.kafka.KafkaStringRecord;
+import com.jongwow.flinkquick.deserializer.KafkaDeserializationSchema;
 import com.jongwow.flinkquick.processor.JsonProcessor;
 import com.jongwow.flinkquick.transform.Transformation;
 import com.jongwow.flinkquick.transform.TransformationFactory;
+import com.jongwow.flinkquick.utils.JsonConverter;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
-import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -55,8 +56,8 @@ public class DataStreamJob {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
-        KafkaSource<String> source = getKafkaSource();
-        DataStreamSource<String> kafkaStream = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
+        KafkaSource<KafkaStringRecord> source = getKafkaSource();
+        DataStreamSource<KafkaStringRecord> kafkaStream = env.fromSource(source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 
 //        Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("dms", null);
         Transformation<Message> transformation = (Transformation<Message>) TransformationFactory.getTransformation("json", getJsonSchemaFromArgs());
@@ -73,8 +74,8 @@ public class DataStreamJob {
     }
 
 
-    public static KafkaSource<String> getKafkaSource() {
-        return KafkaSource.<String>builder()
+    public static KafkaSource<KafkaStringRecord> getKafkaSource() {
+        return KafkaSource.<KafkaStringRecord>builder()
                 .setBootstrapServers("localhost:9095")
                 .setTopics("test-json-topic")
                 .setGroupId("my-group")
@@ -82,7 +83,7 @@ public class DataStreamJob {
                 .setProperty("sasl.mechanism", "PLAIN")
                 .setProperty("sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"user1\" password=\"bYYnBX7ITw\";")
                 .setStartingOffsets(OffsetsInitializer.earliest())
-                .setValueOnlyDeserializer(new SimpleStringSchema())
+                .setDeserializer(new KafkaDeserializationSchema())
                 .build();
     }
 
