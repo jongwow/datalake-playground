@@ -22,11 +22,12 @@ public class JsonColumn implements Serializable {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
+    public boolean equals(Object o) {
+        if (o == this) {
             return true;
         }
-        if (Objects.equals(this.columnName, ((JsonColumn) obj).getColumnName()) && this.jsonDataType == ((JsonColumn) obj).getDataType()) {
+        if (Objects.equals(this.columnName, ((JsonColumn) o).getColumnName())
+                && this.jsonDataType == ((JsonColumn) o).getDataType()) {
             return true;
         }
         return false;
