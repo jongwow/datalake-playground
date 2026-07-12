@@ -32,6 +32,8 @@ import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsIni
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.table.api.Table;
+import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +56,7 @@ public class DataStreamJob {
         // Sets up the execution environment, which is the main entry point
         // to building Flink applications.
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        StreamTableEnvironment tEnv = StreamTableEnvironment.create(env);
         env.setParallelism(1);
 
         KafkaSource<KafkaStringRecord> source = getKafkaSource();
@@ -68,7 +71,21 @@ public class DataStreamJob {
 
         parseJson.print().name("kafka print");
 
+        Table tableToSink = tEnv.fromDataStream(parseJson);
 
+        String sinkSql = "CREATE TABLE user_activity (" +
+                "user_id BIGINT, " +
+                "item_id BIGINT, " +
+                "behavior STRING " +
+                ") WITH (" +
+                "'connector' = 'iceberg', " +
+                "'catalog-type' = 'hive', " +
+                "'catalog-name' = 'raw_data', " +
+                "'catalog-table'= 'user_activity', " +
+                "'uri'='thrift://localhost:9083' " +
+                ")";
+        tEnv.executeSql(sinkSql).print();
+        tableToSink.insertInto("user_activity").execute().print();
         // Execute program, beginning computation.
         env.execute("Flink Java API Skeleton");
     }
